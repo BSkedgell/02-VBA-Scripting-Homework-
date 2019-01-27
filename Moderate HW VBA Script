@@ -1,0 +1,84 @@
+Sub Stock_Puller_Each_Sheet()
+' Set worksheets level variables
+Dim WS As Worksheet
+    ' Start your loop with a for loop that way it will loop through all worksheets no matter the ammount of them
+    For Each WS In ActiveWorkbook.Worksheets
+    WS.Activate
+        ' Figure out the last row in the worksheet your in now
+        LastRow = WS.Cells(Rows.Count, 1).End(xlUp).Row
+
+        ' Create header for new aggreate
+        Cells(1, 9).Value = "Stock Ticker Symbol"
+        Cells(1, 10).Value = "Stock Ticker Yr Change"
+        Cells(1, 11).Value = "Stock Ticker Pct Change"
+        Cells(1, 12).Value = "Stock Ticker Symbol Stock_Volume"
+        ' Create Variable to hold Value
+            Dim Stock_Symbol As String
+            Dim Stock_Open As Double
+            Dim Stock_Close As Double
+            Dim Stock_Yr_Change As Double
+            Dim Stock_Pct_Change As Double
+            Dim Stock_Volume As Double
+            Stock_Volume = 0
+            Dim Row As Double
+            Row = 2
+            Dim i As Long
+        
+        ' Set the initial Stock_Open
+        Stock_Open = Cells(2, 3).Value
+         ' Loop through all the Stock_Symbol's in each sheet
+        
+        For i = 2 To LastRow
+         ' Check if we are still within the same Stock_Symbol, if it is not...
+            If Cells(i + 1, 1).Value <> Cells(i, 1).Value Then
+                ' Set the Stock_Symbol initally
+                Stock_Symbol = Cells(i, 1).Value
+                Cells(Row, 9).Value = Stock_Symbol
+                ' Set the Stock_Close
+                Stock_Close = Cells(i, 6).Value
+                ' Find the Stock_Yr_Change by taking the previously found Stock_Close - Stock_Open
+                Stock_Yr_Change = Stock_Close - Stock_Open
+                Cells(Row, 10).Value = Stock_Yr_Change
+                ' Add the Stock_Pct_Change
+                If (Stock_Open = 0 And Stock_Close = 0) Then
+                    Stock_Pct_Change = 0
+                ElseIf (Stock_Open = 0 And Stock_Close <> 0) Then
+                    Stock_Pct_Change = 1
+                Else
+                    Stock_Pct_Change = Stock_Yr_Change / Stock_Open
+                    Cells(Row, 11).Value = Stock_Pct_Change
+                    Cells(Row, 11).NumberFormat = "0.00%"
+                End If
+                ' Add total Stock_Volume
+                Stock_Volume = Stock_Volume + Cells(i, 7).Value
+                Cells(Row, 12).Value = Stock_Volume
+                ' Add one to the summary table row
+                Row = Row + 1
+                ' Reset the Stock_Open
+                Stock_Open = Cells(i + 1, 3)
+                ' Reset the Stock_Volume total
+                Stock_Volume = 0
+            ' If cells are the same Stock_Symbol
+            Else
+                Stock_Volume = Stock_Volume + Cells(i, 7).Value
+            End If
+        Next i
+        
+        ' Figure out the Last Row of Stock_Yr_Change per WS
+        YrChangeLastRow = WS.Cells(Rows.Count, 9).End(xlUp).Row
+        ' Conditonally format the Cell colors
+        For j = 2 To YrChangeLastRow
+            If (Cells(j, 10).Value > 0 Or Cells(j, 10).Value = 0) Then
+                Cells(j, 10).Interior.ColorIndex = 4
+            ElseIf Cells(j, 10).Value < 0 Then
+                Cells(j, 10).Interior.ColorIndex = 9
+            End If
+        Next j
+        
+    Next WS
+        
+End Sub
+
+
+
+
